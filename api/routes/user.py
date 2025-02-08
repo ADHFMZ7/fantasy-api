@@ -1,15 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException
 from psycopg.rows import class_row
 from models import User
-from db import get_connection
+from db import Connection 
 from psycopg import AsyncConnection
+from typing import List
 
 router = APIRouter(
     prefix="/users"
 )
 
+@router.get("/")
+async def get_users(conn: Connection) -> List[User]:
+    cursor = conn.cursor(row_factory=class_row(User))
+
+    users = await cursor.execute("SELECT * from users;")
+    return await users.fetchall()
+    
+
 @router.post("/")
-async def create_user(user_form: User, conn: AsyncConnection = Depends(get_connection)):
+async def create_user(user_form: User, conn: Connection):
 
     await conn.execute("INSERT INTO users (id, username, email) VALUES (%s, %s, %s)", 
                        (user_form.id, user_form.username, user_form.email))
@@ -19,7 +28,7 @@ async def create_user(user_form: User, conn: AsyncConnection = Depends(get_conne
     # error checking later
 
 @router.get("/{user_id}")
-async def get_user(user_id: str, conn: AsyncConnection = Depends(get_connection)) -> User:
+async def get_user(user_id: str, conn: Connection) -> User:
    
     cursor = conn.cursor(row_factory=class_row(User))
 

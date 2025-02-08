@@ -1,17 +1,8 @@
-from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends 
 from psycopg import AsyncConnection
 from psycopg.rows import class_row
-from db import pool, get_connection
+from db import get_connection, lifespan
 from routes import user, league
-
-from models import MyTable
-
-@asynccontextmanager
-async def lifespan(instance: FastAPI):
-    await pool.open()
-    yield
-    await pool.close()
 
 
 app = FastAPI(lifespan=lifespan)
